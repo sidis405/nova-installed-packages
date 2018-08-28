@@ -10,6 +10,7 @@ Happy coding!
 
 <img src="https://github.com/sidis405/nova-installed-packages/blob/master/screenshots/show.png?raw=true">
 .
+
 ## Installation
 
 You can install the package in to a Laravel app that uses [Nova](https://nova.laravel.com) via composer:
