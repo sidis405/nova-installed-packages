@@ -1,13 +1,10 @@
-# :package_description
+# Nova Installed Packages
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor/:package_name.svg?style=flat-square)](https://packagist.org/packages/:vendor/:package_name)
-![CircleCI branch](https://img.shields.io/circleci/project/github/:vendor/:package_name/master.svg?style=flat-square)
-[![Build Status](https://img.shields.io/travis/:vendor/:package_name/master.svg?style=flat-square)](https://travis-ci.org/:vendor/:package_name)
-[![Quality Score](https://img.shields.io/scrutinizer/g/:vendor/:package_name.svg?style=flat-square)](https://scrutinizer-ci.com/g/:vendor/:package_name)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor/:package_name.svg?style=flat-square)](https://packagist.org/packages/:vendor/:package_name)
+A tool that shows nova-specific packages installed on your application.
 
+Since everyone is hella excited about Nova and installing all sorts of packages, this tool allows us to keep an eye on installed packages and see a detailed page of istructions straight from the NovaPackages api :)
 
-This is where your description should go. Try and limit it to a paragraph or two.
+Happy coding!
 
 Add a screenshot of the tool here.
 
@@ -30,14 +27,14 @@ public function tools()
 {
     return [
         // ...
-        new \:namespace_vendor\:namespace_tool_name\Tool(),
+        new \Strandafili\NovaInstalledPackages\Tool(),
     ];
 }
 ```
 
 ## Usage
 
-Click on the ":package_name" menu item in your Nova app to see the tool provided by this package.
+Click on the "Installed Packages" menu item in your Nova app to see the tool provided by this package.
 
 ### Testing
 
@@ -45,36 +42,18 @@ Click on the ":package_name" menu item in your Nova app to see the tool provided
 composer test
 ```
 
-### Changelog
-
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## Contributing
-
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
 ### Security
 
-If you discover any security related issues, please email :author_email instead of using the issue tracker.
-
-## Postcardware
-
-You're free to use this package, but if it makes it to your production environment we highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using.
-
-Our address is: Spatie, Samberstraat 69D, 2060 Antwerp, Belgium.
-
-We publish all received postcards [on our company website](https://spatie.be/en/opensource/postcards).
+If you discover any security related issues, please email forge405@gmail.com instead of using the issue tracker.
 
 ## Credits
 
-- [:author_name](https://github.com/:author_username)
+- [Sidrit Trandafili](https://github.com/sidis405)
 
-## Support us
+## Big Thanks
 
-Spatie is a webdesign agency based in Antwerp, Belgium. You'll find an overview of all our open source projects [on our website](https://spatie.be/opensource).
-
-Does your business depend on our contributions? Reach out and support us on [Patreon](https://www.patreon.com/spatie). 
-All pledges will be dedicated to allocating workforce on maintenance and new awesome stuff.
+- [Spatie](https://github.com/spatie) for making the wonderful tool template
+- [TighenCo](https://github.com/tightenco) for the novapackages.com API
 
 ## License
 

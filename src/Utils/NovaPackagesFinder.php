@@ -6,16 +6,52 @@ use Composed;
 
 class NovaPackagesFinder
 {
+    protected $fields = [
+        'name',
+        'description',
+        'keywords',
+        'version',
+        'authors',
+        'type',
+        'autoload',
+        'extra'
+    ];
+
+    protected $keyword = 'nova';
+
     public function all()
     {
         return $this->getAllInstalledPackages()->map(function ($package) {
-            return collect($package->getConfig())->only(['name', 'description', 'keywords', 'version', 'authors', 'type', 'autoload', 'extra']);
+            return $this->extractFieldsOfInterest($package);
         })->filter(function ($package) {
-            return in_array('nova', ($package['keywords']) ?? []);
-        });
+            return $this->keepOnlyNovaPackages($package);
+        })->map(function ($package) {
+            return $this->compactAuthorNames($package);
+        })->toArray();
     }
     private function getAllInstalledPackages()
     {
         return collect(Composed\packages());
+    }
+
+    private function extractFieldsOfInterest($package)
+    {
+        return collect($package->getConfig())->only($this->fields);
+    }
+
+    public function keepOnlyNovaPackages($package)
+    {
+        return in_array($this->keyword, ($package['keywords']) ?? []);
+    }
+
+    private function compactAuthorNames($package)
+    {
+        if (isset($package['authors'])) {
+            $package['authors'] = collect($package['authors'])->map(function ($author) {
+                return $author['name'];
+            })->implode(', ');
+        }
+
+        return $package;
     }
 }

@@ -77,9 +77,13 @@ module.exports = __webpack_require__(11);
 
 Nova.booting(function (Vue, router) {
     router.addRoutes([{
-        name: 'nova-installed-packages',
+        name: 'index',
         path: '/nova-installed-packages',
         component: __webpack_require__(2)
+    }, {
+        name: 'show',
+        path: '/nova-installed-packages/:packageName',
+        component: __webpack_require__(15)
     }]);
 });
 
@@ -113,7 +117,7 @@ var Component = normalizeComponent(
   __vue_scopeId__,
   __vue_module_identifier__
 )
-Component.options.__file = "resources/js/components/Tool.vue"
+Component.options.__file = "resources/js/components/Index.vue"
 
 /* hot reload */
 if (false) {(function () {
@@ -122,9 +126,9 @@ if (false) {(function () {
   if (!hotAPI.compatible) return
   module.hot.accept()
   if (!module.hot.data) {
-    hotAPI.createRecord("data-v-68ff5483", Component.options)
+    hotAPI.createRecord("data-v-bb962f12", Component.options)
   } else {
-    hotAPI.reload("data-v-68ff5483", Component.options)
+    hotAPI.reload("data-v-bb962f12", Component.options)
   }
   module.hot.dispose(function (data) {
     disposed = true
@@ -145,13 +149,13 @@ var content = __webpack_require__(4);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(6)("6e5db1d0", content, false, {});
+var update = __webpack_require__(6)("283f0064", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
  if(!content.locals) {
-   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-68ff5483\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./Tool.vue", function() {
-     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-68ff5483\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./Tool.vue");
+   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-bb962f12\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./Index.vue", function() {
+     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-bb962f12\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./Index.vue");
      if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
      update(newContent);
    });
@@ -169,7 +173,7 @@ exports = module.exports = __webpack_require__(5)(false);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Scoped Styles */\n", ""]);
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Scoped Styles */\n", ""]);
 
 // exports
 
@@ -675,6 +679,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     mounted: function mounted() {
@@ -684,18 +696,19 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         return {
             fields: [{
                 label: 'Name',
-                attribute: 'name',
-                sortable: true
+                attribute: 'name'
             }, {
                 label: 'Description',
-                attribute: 'description',
-                sortable: false
+                attribute: 'description'
             }, {
                 label: 'Version',
-                attribute: 'version',
-                sortable: false
+                attribute: 'version'
+            }, {
+                label: 'Author(s)',
+                attribute: 'authors'
             }],
-            packages: ''
+            packages: '',
+            search: ''
         };
     },
 
@@ -705,8 +718,45 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             var _this = this;
 
             axios.get('/nova-vendor/sidis405/nova-installed-packages').then(function (response) {
-                _this.packages = response.data;
+                _this.packages = Array.from(Object.keys(response.data), function (k) {
+                    return response.data[k];
+                });
             });
+        }
+    },
+
+    computed: {
+        filteredPackages: function filteredPackages() {
+            if (!this.search.length) {
+                return this.packages;
+            }
+            var regex = this.searchRegex;
+            // User input is not a valid regular expression, show no results
+            if (!regex) {
+                return {};
+            }
+            return this.packages.filter(function (novaPackage) {
+                var matchesSearch = false;
+                for (var key in novaPackage) {
+                    if (Array.isArray(novaPackage[key])) {
+                        novaPackage[key].forEach(function (property) {
+                            if (regex.test(property)) {
+                                matchesSearch = true;
+                            }
+                        });
+                    } else if (regex.test(novaPackage[key])) {
+                        matchesSearch = true;
+                    }
+                }
+                return matchesSearch;
+            });
+        },
+        searchRegex: function searchRegex() {
+            try {
+                return new RegExp('(' + this.search + ')', 'i');
+            } catch (e) {
+                return false;
+            }
         }
     }
 });
@@ -722,7 +772,9 @@ var render = function() {
   return _c(
     "div",
     [
-      _c("heading", { staticClass: "mb-6" }, [_vm._v("Installed Packages")]),
+      _c("heading", { staticClass: "mb-6" }, [
+        _vm._v("Installed Packages (" + _vm._s(this.packages.length) + ")")
+      ]),
       _vm._v(" "),
       _c("div", { staticClass: "flex justify-between" }, [
         _c(
@@ -773,39 +825,80 @@ var render = function() {
               _c("thead", [
                 _c(
                   "tr",
-                  _vm._l(_vm.fields, function(field) {
-                    return _c("th", { staticClass: "text-left" }, [
+                  [
+                    _vm._l(_vm.fields, function(field) {
+                      return _c("th", { staticClass: "text-left" }, [
+                        _vm._v(
+                          "\n                            " +
+                            _vm._s(field.label) +
+                            "\n                    "
+                        )
+                      ])
+                    }),
+                    _vm._v(" "),
+                    _c("th", [
                       _vm._v(
-                        "\n                            " +
-                          _vm._s(field.label) +
-                          "\n                    "
+                        "\n                         \n                    "
                       )
                     ])
-                  })
+                  ],
+                  2
                 )
               ]),
               _vm._v(" "),
               _c(
                 "tbody",
-                _vm._l(_vm.packages, function(package, index) {
+                _vm._l(_vm.filteredPackages, function(package, index) {
                   return _c(
                     "tr",
                     { key: index },
-                    _vm._l(_vm.fields, function(field) {
-                      return _c("td", [
-                        _c(
-                          "span",
-                          { staticClass: "whitespace-no-wrap text-left" },
-                          [
-                            _vm._v(
-                              "\n                            " +
-                                _vm._s(package[field.attribute]) +
-                                "\n                        "
-                            )
-                          ]
-                        )
-                      ])
-                    })
+                    [
+                      _vm._l(_vm.fields, function(field) {
+                        return _c("td", [
+                          _c(
+                            "span",
+                            { staticClass: "whitespace-no-wrap text-left" },
+                            [
+                              _vm._v(
+                                "\n                            " +
+                                  _vm._s(package[field.attribute]) +
+                                  "\n                        "
+                              )
+                            ]
+                          )
+                        ])
+                      }),
+                      _vm._v(" "),
+                      _c(
+                        "td",
+                        [
+                          _c(
+                            "router-link",
+                            {
+                              attrs: {
+                                to: {
+                                  name: "show",
+                                  params: { packageName: package.name }
+                                }
+                              }
+                            },
+                            [
+                              _c("icon", {
+                                attrs: {
+                                  type: "view",
+                                  "view-box": "0 0 24 24",
+                                  width: "20",
+                                  height: "20"
+                                }
+                              })
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    2
                   )
                 })
               )
@@ -823,7 +916,7 @@ module.exports = { render: render, staticRenderFns: staticRenderFns }
 if (false) {
   module.hot.accept()
   if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-68ff5483", module.exports)
+    require("vue-hot-reload-api")      .rerender("data-v-bb962f12", module.exports)
   }
 }
 
@@ -832,6 +925,220 @@ if (false) {
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 12 */,
+/* 13 */,
+/* 14 */,
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(16)
+}
+var normalizeComponent = __webpack_require__(8)
+/* script */
+var __vue_script__ = __webpack_require__(18)
+/* template */
+var __vue_template__ = __webpack_require__(19)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/Show.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-e124e930", Component.options)
+  } else {
+    hotAPI.reload("data-v-e124e930", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(17);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(6)("eb7176ca", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-e124e930\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./Show.vue", function() {
+     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-e124e930\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./Show.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(5)(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Scoped Styles */\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    mounted: function mounted() {
+        this.getPackageDataFromNovaPackages();
+    },
+    data: function data() {
+        return {
+            packageData: ''
+        };
+    },
+
+
+    methods: {
+        getPackageDataFromNovaPackages: function getPackageDataFromNovaPackages() {
+            var _this = this;
+
+            axios.get('https://novapackages.com/api/search?q=' + this.packageName).then(function (response) {
+                _this.packageData = response.data['data'][0];
+                console.log(_this.packageData['description_html']);
+            });
+        }
+    },
+
+    computed: {
+        packageName: function packageName() {
+            return this.$route.params.packageName;
+        }
+    }
+});
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "div",
+    [
+      _c("router-link", { attrs: { to: { name: "index" } } }, [
+        _vm._v("\n        ← Back\n    ")
+      ]),
+      _vm._v(" "),
+      _c("h2", {
+        staticClass: "uppercase text-center mb-4",
+        domProps: { innerHTML: _vm._s(this.packageName) }
+      }),
+      _vm._v(" "),
+      _c("card", { staticClass: "flex flex-col mb-6 p-4" }, [
+        _c("p", {
+          domProps: { innerHTML: _vm._s(_vm.packageData["abstract"]) }
+        })
+      ]),
+      _vm._v(" "),
+      _c("card", { staticClass: "flex flex-col mb-6 p-4" }, [
+        _c("h4", { staticClass: "uppercase text-center mb-4" }, [
+          _vm._v("Description")
+        ]),
+        _vm._v(" "),
+        _c("span", {
+          domProps: { innerHTML: _vm._s(_vm.packageData["description_html"]) }
+        })
+      ]),
+      _vm._v(" "),
+      _c("card", { staticClass: "flex flex-col mb-6 p-4" }, [
+        _c("h4", { staticClass: "uppercase text-center mb-4" }, [
+          _vm._v("Instructions")
+        ]),
+        _vm._v(" "),
+        _c("span", {
+          domProps: { innerHTML: _vm._s(_vm.packageData["instructions_html"]) }
+        })
+      ])
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-e124e930", module.exports)
+  }
+}
 
 /***/ })
 /******/ ]);
