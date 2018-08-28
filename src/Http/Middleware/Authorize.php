@@ -1,10 +1,10 @@
 <?php
 
-namespace :namespace_vendor\:namespace_tool_name\Http\Middleware;
+namespace Strandafili\NovaInstalledPackages\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use :namespace_vendor\:namespace_tool_name\Tool;
+use Strandafili\NovaInstalledPackages\Tool;
 use Symfony\Component\HttpFoundation\Response;
 
 class Authorize

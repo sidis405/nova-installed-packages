@@ -1,8 +1,8 @@
 Nova.booting((Vue, router) => {
     router.addRoutes([
         {
-            name: ':package_name',
-            path: '/:package_name',
+            name: 'nova-installed-packages',
+            path: '/nova-installed-packages',
             component: require('./components/Tool'),
         },
     ])

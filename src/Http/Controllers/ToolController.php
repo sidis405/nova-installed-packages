@@ -1,15 +1,14 @@
 <?php
 
-namespace :namespace_vendor\:namespace_tool_name\Http\Controllers;
+namespace Strandafili\NovaInstalledPackages\Http\Controllers;
 
-use Illuminate\Http\Request;
-use :namespace_vendor\:namespace_tool_name\File;
 use Illuminate\Routing\Controller;
+use Strandafili\NovaInstalledPackages\Utils\NovaPackagesFinder;
 
 class ToolController extends Controller
 {
-    public function index()
+    public function index(NovaPackagesFinder $novaPackagesFinder)
     {
-        return 'Hello world!';
+        return $novaPackagesFinder->all();
     }
 }

@@ -1,5 +1,5 @@
 {
-    "name": "sid/nova-installed-packages",
+    "name": "sidis405/nova-installed-packages",
     "description": "A tool that shows nova-specific packages installed on your application.",
     "keywords": [
         "laravel",
@@ -11,17 +11,18 @@
             "url": "../nova"
         }
     ],
-    "homepage": "https://github.com/:vendor/:package_name",
+    "homepage": "https://github.com/sidis405/nova-installed-packages",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": ":author_email",
+            "name": "Sidrit Trandafili",
+            "email": "forge405@gmail.com",
             "role": "Developer"
         }
     ],
     "require": {
         "php": ">=7.1.0",
+        "joshdifabio/composed": "^1.0",
         "laravel/nova": "*"
     },
     "require-dev": {
@@ -30,18 +31,18 @@
     },
     "autoload": {
         "psr-4": {
-            ":namespace_vendor\\:namespace_tool_name\\": "src/"
+            "Strandafili\\NovaInstalledPackages\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            ":namespace_vendor\\:namespace_tool_name\\Tests\\": "tests"
+            "Strandafili\\NovaInstalledPackages\\Tests\\": "tests"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                ":namespace_vendor\\:namespace_tool_name\\ToolServiceProvider"
+                "Strandafili\\NovaInstalledPackages\\ToolServiceProvider"
             ]
         }
     },
