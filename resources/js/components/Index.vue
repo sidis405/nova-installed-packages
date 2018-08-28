@@ -37,7 +37,7 @@
                             </span>
                         </td>
                         <td>
-                            <router-link :to="{ name: 'show', params: { packageName: package.name }}">
+                            <router-link :to="{ name: 'nova-installed-packages-detail', params: { packageName: package.name }}">
                                 <icon type="view" view-box="0 0 24 24" width="20" height="20" />
                             </router-link>
                         </td>

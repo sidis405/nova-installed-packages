@@ -6,8 +6,10 @@ Since everyone is hella excited about Nova and installing all sorts of packages,
 
 Happy coding!
 
-Add a screenshot of the tool here.
+<img src="https://github.com/sidis405/nova-installed-packages/blob/master/screenshots/index.png?raw=true">
 
+<img src="https://github.com/sidis405/nova-installed-packages/blob/master/screenshots/show.png?raw=true">
+.
 ## Installation
 
 You can install the package in to a Laravel app that uses [Nova](https://nova.laravel.com) via composer:

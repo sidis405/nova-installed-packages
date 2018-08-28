@@ -1,9 +1,9 @@
 <?php
 
-namespace :namespace_vendor\:namespace_tool_name\Tests;
+namespace Strandafili\NovaInstalledPackages\Tests;
 
-use :namespace_vendor\:namespace_tool_name\Http\Controllers\ToolController;
-use :namespace_vendor\:namespace_tool_name\:namespace_tool_name;
+use Strandafili\NovaInstalledPackages\Http\Controllers\ToolController;
+use Strandafili\NovaInstalledPackages\:namespace_tool_name;
 use Symfony\Component\HttpFoundation\Response;
 
 class ToolControllerTest extends TestCase
@@ -11,8 +11,7 @@ class ToolControllerTest extends TestCase
     /** @test */
     public function it_can_can_return_a_response()
     {
-        $this
-            ->get('nova-vendor/sidis405/nova-installed-packages/endpoint')
+        $this->get('nova-vendor/sidis405/nova-installed-packages')
             ->assertSuccessful();
     }
 }

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <router-link :to="{ name: 'index'}">
+        <router-link :to="{ name: 'nova-installed-packages'}">
             ← Back
         </router-link>
 
@@ -39,7 +39,6 @@
             getPackageDataFromNovaPackages() {
                 axios.get('https://novapackages.com/api/search?q=' + this.packageName).then((response) => {
                     this.packageData = response.data['data'][0];
-                    console.log(this.packageData['description_html'])
                 })
             }
         },

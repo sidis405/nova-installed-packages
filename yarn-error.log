@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/Cellar/node/9.11.1/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js dev
+  /usr/local/Cellar/node/9.11.1/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js prod
 
 PATH: 
   /Users/sid/.rvm/gems/ruby-2.5.0/bin:/Users/sid/.rvm/gems/ruby-2.5.0@global/bin:/Users/sid/.rvm/rubies/ruby-2.5.0/bin:/Users/sid/.composer/vendor/bin:/Library/Frameworks/Python.framework/Versions/3.6/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Users/sid/.rvm/bin
@@ -8011,7 +8011,7 @@ Trace:
   Error: Command failed.
   Exit code: 2
   Command: sh
-  Arguments: -c npm run development
+  Arguments: -c npm run production
   Directory: /Users/sid/Code/web/withnova-packages-dev/nova-installed-packages
   Output:
   
