@@ -6,9 +6,14 @@ Nova.booting((Vue, router) => {
             component: require('./components/Index'),
         },
         {
+            name: 'nova-installed-packages-browse',
+            path: '/nova-installed-packages/browse',
+            component: require('./components/Browse'),
+        },
+        {
             name: 'nova-installed-packages-detail',
             path: '/nova-installed-packages/:packageName',
             component: require('./components/Show'),
-        },
+        }
     ])
 })
