@@ -1057,7 +1057,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Scoped Styles */\n", ""]);
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Scoped Styles */\n", ""]);
 
 // exports
 
@@ -1177,7 +1177,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             if (this.term.length > 2) {
                 axios.get('https://novapackages.com/api/search?q=' + this.term).then(function (response) {
                     _this4.foundPackages = response.data.data;
-                    console.log(_this4.foundPackages);
                 });
             } else {
                 this.foundPackages = [];
@@ -1257,7 +1256,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         Package: __WEBPACK_IMPORTED_MODULE_0__Package_vue___default.a
     },
 
-    props: ['packages', 'installedPackages']
+    props: ['packages', 'installedPackages', 'listingType'],
+
+    methods: {
+        getKeyName: function getKeyName(index, name) {
+            return this.listingType + "-" + name + '-' + index;
+        }
+    }
 });
 
 /***/ }),
@@ -1380,12 +1385,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         install: function install() {
             this.$toasted.show('Installing \'' + this.package.composer_name + '\'...', { type: 'info', duration: 100000 });
 
-            // axios.post('/nova-vendor/sidis405/nova-installed-packages', {package: this.package.composer_name}).then((response) => {
-            //     console.log(response.data)
-            // })
             var request = new XMLHttpRequest();
             request.open('POST', '/nova-vendor/sidis405/nova-installed-packages', true);
-            request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             request.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
 
             request.onprogress = function (e) {
@@ -1402,15 +1404,24 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             request.onreadystatechange = function () {
                 if (request.readyState == 4) {
                     vm.installed = true;
-                    setTimeout(function () {
-                        vm.$toasted.clear();
-                        vm.$toasted.show('\'' + vm.package.composer_name + '\' was installed successfully', { type: 'success' });
-                    }, 2000);
+                    // setTimeout(function(){
+                    vm.$toasted.clear();
+                    vm.$toasted.show('\'' + vm.package.composer_name + '\' was installed successfully', { type: 'success' });
+                    vm.$toasted.show('Configuring \'' + vm.package.composer_name + '\'...', { type: 'info', duration: 100000 });
+                    // }, 2000)
+                    axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', { package: vm.package.composer_name }).then(function (response) {
+                        vm.$toasted.show('\'' + vm.package.composer_name + '\' was configured successfully', { type: 'success' });
+                        setTimeout(function () {
+                            vm.$toasted.clear();
+                            // location.reload();
+                            // window.location.href('/nova/nova-installed-packages');
+                        }, 2000);
+                    });
                     console.log('Complete');
                 }
             };
 
-            request.send('package=' + this.package.composer_name);
+            request.send('package=' + vm.package.composer_name);
         }
     },
 
@@ -1566,7 +1577,12 @@ var render = function() {
                     {
                       staticClass: "btn btn-default btn-small btn-primary",
                       attrs: { href: "#" },
-                      on: { click: _vm.install }
+                      on: {
+                        click: function($event) {
+                          $event.preventDefault()
+                          return _vm.install($event)
+                        }
+                      }
                     },
                     [_vm._v("Install Package")]
                   )
@@ -1601,7 +1617,7 @@ var render = function() {
     { staticClass: "flex flex-wrap sm:justify-start" },
     _vm._l(_vm.packages, function(package, index) {
       return _c("Package", {
-        key: index,
+        key: _vm.getKeyName(index, package.composer_name),
         attrs: { package: package, installedPackages: _vm.installedPackages }
       })
     })
@@ -1720,7 +1736,8 @@ var render = function() {
                 _c("PackageList", {
                   attrs: {
                     packages: _vm.foundPackages,
-                    installedPackages: _vm.installedPackages
+                    installedPackages: _vm.installedPackages,
+                    listingType: "found"
                   }
                 })
               ],
@@ -1744,7 +1761,8 @@ var render = function() {
                 _c("PackageList", {
                   attrs: {
                     packages: _vm.popularPackages,
-                    installedPackages: _vm.installedPackages
+                    installedPackages: _vm.installedPackages,
+                    listingType: "popular"
                   }
                 })
               ],
@@ -1764,7 +1782,8 @@ var render = function() {
                 _c("PackageList", {
                   attrs: {
                     packages: _vm.recentPackages,
-                    installedPackages: _vm.installedPackages
+                    installedPackages: _vm.installedPackages,
+                    listingType: "recent"
                   }
                 })
               ],

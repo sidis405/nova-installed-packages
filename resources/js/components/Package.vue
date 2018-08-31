@@ -33,7 +33,7 @@
                             {{package.author.name}}
                         </a>
 
-                        <a href="#" v-if="!installed" @click="install" class="btn btn-default btn-small btn-primary">Install Package</a>
+                        <a href="#" v-if="!installed" @click.prevent="install" class="btn btn-default btn-small btn-primary">Install Package</a>
                 </div>
             </div>
         </div>
@@ -64,13 +64,9 @@
             install(){
                 this.$toasted.show('Installing \'' + this.package.composer_name + '\'...', { type: 'info', duration: 100000 });
 
-
-                // axios.post('/nova-vendor/sidis405/nova-installed-packages', {package: this.package.composer_name}).then((response) => {
-                //     console.log(response.data)
-                // })
                 var request = new XMLHttpRequest();
                 request.open('POST', '/nova-vendor/sidis405/nova-installed-packages', true);
-                request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
                 request.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
 
                 request.onprogress = function(e) {
@@ -89,15 +85,24 @@
                 request.onreadystatechange = function() {
                     if (request.readyState == 4) {
                         vm.installed = true
-                        setTimeout(function(){
+                        // setTimeout(function(){
                             vm.$toasted.clear();
                             vm.$toasted.show('\'' + vm.package.composer_name + '\' was installed successfully', { type: 'success' });
-                        }, 2000)
+                            vm.$toasted.show('Configuring \'' + vm.package.composer_name + '\'...', { type: 'info', duration: 100000 });
+                        // }, 2000)
+                        axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', {package: vm.package.composer_name}).then((response) => {
+                                vm.$toasted.show('\'' + vm.package.composer_name + '\' was configured successfully', { type: 'success' });
+                            setTimeout(function(){
+                                vm.$toasted.clear();
+                                // location.reload();
+                                // window.location.href('/nova/nova-installed-packages');
+                            }, 2000)
+                        })
                         console.log('Complete');
                     }
                 };
 
-                request.send('package=' + this.package.composer_name);
+                request.send('package=' + vm.package.composer_name);
             }
         },
 

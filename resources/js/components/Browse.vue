@@ -26,7 +26,7 @@
             <heading class="mb-6">Found Packages ({{ this.foundPackages.length }})</heading>
 
             <div class="w-full">
-                    <PackageList :packages="foundPackages" :installedPackages="installedPackages" />
+                    <PackageList :packages="foundPackages" :installedPackages="installedPackages" listingType="found" />
             </div>
 
         </template>
@@ -36,13 +36,13 @@
             <heading class="mb-6">Popular Packages ({{ this.popularPackages.length }})</heading>
 
             <div class="w-full">
-                    <PackageList :packages="popularPackages" :installedPackages="installedPackages" />
+                    <PackageList :packages="popularPackages" :installedPackages="installedPackages" listingType="popular" />
             </div>
 
             <heading class="mb-6 mt-4">Recent Packages ({{ this.recentPackages.length }})</heading>
 
             <div class="w-full">
-                    <PackageList :packages="recentPackages" :installedPackages="installedPackages" />
+                    <PackageList :packages="recentPackages" :installedPackages="installedPackages"  listingType="recent"/>
             </div>
 
         </template>
@@ -99,7 +99,6 @@
                 if(this.term.length > 2){
                     axios.get('https://novapackages.com/api/search?q=' + this.term).then((response) => {
                         this.foundPackages = response.data.data;
-                        console.log(this.foundPackages)
                     })
                 }else{
                     this.foundPackages = [];

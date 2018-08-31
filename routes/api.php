@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', \Strandafili\NovaInstalledPackages\Http\Controllers\PackagesController::class . '@index');
 
 Route::post('/', \Strandafili\NovaInstalledPackages\Http\Controllers\PackagesController::class . '@store');
+Route::post('/configure', \Strandafili\NovaInstalledPackages\Http\Controllers\ConfigurationsController::class . '@store');
 
 
 Route::get('/ping', function () {
