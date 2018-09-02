@@ -487,7 +487,7 @@ function applyToTag (styleElement, obj) {
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(4);
-module.exports = __webpack_require__(27);
+module.exports = __webpack_require__(28);
 
 
 /***/ }),
@@ -495,6 +495,10 @@ module.exports = __webpack_require__(27);
 /***/ (function(module, exports, __webpack_require__) {
 
 Nova.booting(function (Vue, router) {
+
+    Vue.config.productionTip = true;
+    Vue.config.devtools = true;
+
     router.addRoutes([{
         name: 'nova-installed-packages',
         path: '/nova-installed-packages',
@@ -506,7 +510,7 @@ Nova.booting(function (Vue, router) {
     }, {
         name: 'nova-installed-packages-detail',
         path: '/nova-installed-packages/:packageName',
-        component: __webpack_require__(22)
+        component: __webpack_require__(23)
     }]);
 });
 
@@ -984,7 +988,7 @@ var normalizeComponent = __webpack_require__(0)
 /* script */
 var __vue_script__ = __webpack_require__(14)
 /* template */
-var __vue_template__ = __webpack_require__(21)
+var __vue_template__ = __webpack_require__(22)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -1194,7 +1198,7 @@ var normalizeComponent = __webpack_require__(0)
 /* script */
 var __vue_script__ = __webpack_require__(16)
 /* template */
-var __vue_template__ = __webpack_require__(20)
+var __vue_template__ = __webpack_require__(21)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -1274,7 +1278,7 @@ var normalizeComponent = __webpack_require__(0)
 /* script */
 var __vue_script__ = __webpack_require__(18)
 /* template */
-var __vue_template__ = __webpack_require__(19)
+var __vue_template__ = __webpack_require__(20)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -1318,110 +1322,146 @@ module.exports = Component.exports
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__notify__ = __webpack_require__(19);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-    props: ['package', 'installedPackages'],
+    props: ['package', 'installedPackages', 'key'],
 
+    created: function created() {
+        var _this2 = this;
+
+        Nova.$on('installation-requested', function (payload) {
+            return _this2.installIfNeeded(payload);
+        });
+
+        Nova.$on('installation-started', function (payload) {
+            _this2.notifyIfNeeded('installing', payload);_this2.disabled = true;
+        });
+
+        this.$on('installation-complete', function (payload) {
+            _this2.notifyIfNeeded('installed', payload);_this2.configure();
+        });
+
+        this.$on('configuration-started', function (payload) {
+            return _this2.notifyIfNeeded('configuring', payload);
+        });
+
+        Nova.$on('configuration-complete', function (payload) {
+            _this2.notifyIfNeeded('configured', payload);_this2.disabled = false;
+        });
+    },
     data: function data() {
         return {
-            installed: this.isInstalled()
+            installed: this.isInstalled(),
+            installing: false,
+            disabled: false
         };
     },
 
 
     methods: {
+        concernsPackage: function concernsPackage(packageKey) {
+            return packageKey == this.$vnode.key;
+        },
+        notifyIfNeeded: function notifyIfNeeded(type, payload) {
+            if (this.concernsPackage(payload.packageKey)) {
+                __WEBPACK_IMPORTED_MODULE_0__notify__["a" /* default */][type](this.package.composer_name, this.$toasted);
+            }
+        },
+        clearNotificationsAfter: function clearNotificationsAfter(after) {
+            var _this = this;
+            setTimeout(function () {
+                _this.$toasted.clear();
+            }, after);
+        },
         isInstalled: function isInstalled() {
 
-            var isPackageInstalled = this.installedPackages.map(function (i) {
+            return this.installedPackages.map(function (i) {
                 return i.name;
             }).includes(this.package.composer_name);
-
-            return isPackageInstalled;
+        },
+        requestInstallation: function requestInstallation() {
+            Nova.$emit('installation-requested', { packageKey: this.$vnode.key });
+        },
+        installIfNeeded: function installIfNeeded(payload) {
+            if (this.concernsPackage(payload.packageKey)) {
+                this.install();
+            }
         },
         install: function install() {
-            this.$toasted.show('Installing \'' + this.package.composer_name + '\'...', { type: 'info', duration: 100000 });
+            var _this3 = this;
 
-            var request = new XMLHttpRequest();
-            request.open('POST', '/nova-vendor/sidis405/nova-installed-packages', true);
-            request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-            request.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
+            this.installing = true;
 
-            request.onprogress = function (e) {
-                var response = e.currentTarget.response;
-                var lastResponseLength = null;
-                var output = (typeof lastResponseLength === 'undefined' ? 'undefined' : _typeof(lastResponseLength)) === ( true ? 'undefined' : _typeof(undefined)) ? response : response.substring(lastResponseLength);
+            Nova.$emit('installation-started', { packageKey: this.$vnode.key });
 
-                lastResponseLength = response.length;
-                console.log(output);
-            };
+            axios.post('/nova-vendor/sidis405/nova-installed-packages', { package: this.package.composer_name }).then(function (response) {
+                _this3.$emit('installation-complete', { packageKey: _this3.$vnode.key });
+            });
+        },
+        configure: function configure() {
+            var _this4 = this;
 
-            var vm = this;
+            this.$emit('configuration-started', { packageKey: this.$vnode.key });
 
-            request.onreadystatechange = function () {
-                if (request.readyState == 4) {
-                    vm.installed = true;
-                    // setTimeout(function(){
-                    vm.$toasted.clear();
-                    vm.$toasted.show('\'' + vm.package.composer_name + '\' was installed successfully', { type: 'success' });
-                    vm.$toasted.show('Configuring \'' + vm.package.composer_name + '\'...', { type: 'info', duration: 100000 });
-                    // }, 2000)
-                    axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', { package: vm.package.composer_name }).then(function (response) {
-                        vm.$toasted.show('\'' + vm.package.composer_name + '\' was configured successfully', { type: 'success' });
-                        setTimeout(function () {
-                            vm.$toasted.clear();
-                            // location.reload();
-                            // window.location.href('/nova/nova-installed-packages');
-                        }, 2000);
-                    });
-                    console.log('Complete');
-                }
-            };
+            axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', { package: this.package.composer_name }).then(function (response) {
 
-            request.send('package=' + vm.package.composer_name);
+                Nova.$emit('configuration-complete', { packageKey: _this4.$vnode.key });
+
+                _this4.installing = true;
+                _this4.installed = true;
+
+                _this4.clearNotificationsAfter(2000);
+            });
         }
     },
 
@@ -1436,6 +1476,26 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 /***/ }),
 /* 19 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony default export */ __webpack_exports__["a"] = ({
+    installing: function installing(packageName, toast) {
+        toast.show('Installing \'' + packageName + '\'...', { type: 'info', duration: 0 });
+    },
+    installed: function installed(packageName, toast) {
+        toast.show('\'' + packageName + '\' was installed successfully', { type: 'success', duration: 0 });
+    },
+    configuring: function configuring(packageName, toast) {
+        toast.show('Configuring  \'' + packageName + '\' ...', { type: 'info', duration: 0 });
+    },
+    configured: function configured(packageName, toast) {
+        toast.show('\'' + packageName + '\' was configured successfully', { type: 'success', duration: 0 });
+    }
+});
+
+/***/ }),
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -1446,7 +1506,7 @@ var render = function() {
     "div",
     {
       staticClass: "flex m-2 mb-4 shadow hover:shadow-md h-128 w-full",
-      staticStyle: { "max-width": "400px" }
+      staticStyle: { "max-width": "350px" }
     },
     [
       _c(
@@ -1494,9 +1554,9 @@ var render = function() {
                           },
                           [
                             _vm._v(
-                              "\n                                    " +
+                              "\n                                " +
                                 _vm._s(_vm.package.name) +
-                                "\n                                "
+                                "\n                            "
                             )
                           ]
                         )
@@ -1537,7 +1597,7 @@ var render = function() {
                   },
                   [
                     _vm._v(
-                      "\n                            Learn More\n                        "
+                      "\n                        Learn More\n                    "
                     )
                   ]
                 )
@@ -1556,7 +1616,7 @@ var render = function() {
                 "a",
                 {
                   staticClass:
-                    "text-indigo font-bold no-underline uppercase text-xs hover:text-indigo-dark",
+                    "text-indigo font-bold no-underline uppercase text-xs hover:text-indigo-dark mt-3 ml-0",
                   attrs: {
                     href: _vm.package.author.url ? _vm.package.author.url : "#",
                     target: ""
@@ -1573,18 +1633,32 @@ var render = function() {
               _vm._v(" "),
               !_vm.installed
                 ? _c(
-                    "a",
+                    "button",
                     {
-                      staticClass: "btn btn-default btn-small btn-primary",
-                      attrs: { href: "#" },
+                      staticClass:
+                        "btn btn-default h-btn-sm btn-primary leading-loose",
+                      class: { "opacity-50 cursor-not-allowed": _vm.disabled },
+                      attrs: { disabled: _vm.disabled },
                       on: {
                         click: function($event) {
                           $event.preventDefault()
-                          return _vm.install($event)
+                          return _vm.requestInstallation($event)
                         }
                       }
                     },
-                    [_vm._v("Install Package")]
+                    [
+                      _vm.installing
+                        ? _c(
+                            "span",
+                            [
+                              _c("loader", {
+                                attrs: { width: "30", height: "30" }
+                              })
+                            ],
+                            1
+                          )
+                        : _c("span", [_vm._v("Install")])
+                    ]
                   )
                 : _vm._e()
             ]
@@ -1605,7 +1679,7 @@ if (false) {
 }
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -1634,7 +1708,7 @@ if (false) {
 }
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -1806,19 +1880,19 @@ if (false) {
 }
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(23)
+  __webpack_require__(24)
 }
 var normalizeComponent = __webpack_require__(0)
 /* script */
-var __vue_script__ = __webpack_require__(25)
+var __vue_script__ = __webpack_require__(26)
 /* template */
-var __vue_template__ = __webpack_require__(26)
+var __vue_template__ = __webpack_require__(27)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -1857,13 +1931,13 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(24);
+var content = __webpack_require__(25);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
@@ -1883,7 +1957,7 @@ if(false) {
 }
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(1)(false);
@@ -1897,7 +1971,7 @@ exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1957,7 +2031,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -2018,7 +2092,7 @@ if (false) {
 }
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin

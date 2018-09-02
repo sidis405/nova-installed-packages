@@ -4,15 +4,12 @@ namespace Strandafili\NovaInstalledPackages\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Strandafili\NovaInstalledPackages\Utils\NovaPackagesInjector;
-use Strandafili\NovaInstalledPackages\Utils\NovaPackagesConfigurator;
+use Strandafili\NovaInstalledPackages\Jobs\ConfigurePackage;
 
 class ConfigurationsController extends Controller
 {
-    public function store(Request $request, NovaPackagesConfigurator $configurator, NovaPackagesInjector $injector)
+    public function store(Request $request)
     {
-        $configuration = $configurator->configure(request('package'));
-
-        return $injector->inject($configuration);
+        return json_encode(dispatch(new ConfigurePackage(request('package'))));
     }
 }

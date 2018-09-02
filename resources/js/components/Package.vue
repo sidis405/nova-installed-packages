@@ -1,6 +1,6 @@
 <template>
-            <div class="flex m-2 mb-4 shadow hover:shadow-md h-128 w-full" style="max-width: 400px;">
-                <div class="flex-1 bg-white text-sm rounded-sm" style="border-width: 4px 1px 1px; border-style: solid; border-color: rgb(101, 116, 205) rgb(221, 221, 221) rgb(221, 221, 221); border-image: initial;"><!---->
+        <div class="flex m-2 mb-4 shadow hover:shadow-md h-128 w-full" style="max-width: 350px;">
+            <div class="flex-1 bg-white text-sm rounded-sm" style="border-width: 4px 1px 1px; border-style: solid; border-color: rgb(101, 116, 205) rgb(221, 221, 221) rgb(221, 221, 221); border-image: initial;">
 
                 <div class="flex flex-row mt-4 px-4 pb-4" style="height: 14em;">
                     <div class="pb-2 w-full relative">
@@ -8,32 +8,38 @@
                         <div class="flex justify-between">
 
                             <router-link :to="{ name: 'nova-installed-packages-detail', params: { packageName: package.composer_name }}" class="block mb-2 no-underline">
-                                    <h2 class="text-xl text-grey-darkest flex flex-row items-center text-black">
-                                        {{ package.name }}
-                                    </h2>
-                                </router-link>
+                                <h2 class="text-xl text-grey-darkest flex flex-row items-center text-black">
+                                    {{ package.name }}
+                                </h2>
+                            </router-link>
 
-                                <span v-if="installed"  class="text-success mt-1 font-bold">Installed</span>
+                            <span v-if="installed"  class="text-success mt-1 font-bold">Installed</span>
                         </div>
 
 
                         <div class="text-grey-darkest leading-normal mb-4 markdown leading-tight w-full">{{package.abstract}}</div>
 
-                            <div class="py-4">{{ tags }}</div>
+                        <div class="py-4">{{ tags }}</div>
 
-                            <a :href="package.novapackages_url" target="_blank" class="absolute block text-indigo font-bold no-underline pin-b pin-l">
-                                Learn More
-                            </a>
+                        <a :href="package.novapackages_url" target="_blank" class="absolute block text-indigo font-bold no-underline pin-b pin-l">
+                            Learn More
+                        </a>
                     </div>
                 </div>
                 <div class="bg-grey-lightest flex text-sm border-t border-grey-light px-4 py-4 justify-between">
 
                         <a :href="package.author.url ? package.author.url : '#'"
-                        target="" class="text-indigo font-bold no-underline uppercase text-xs hover:text-indigo-dark">
+                        target="" class="text-indigo font-bold no-underline uppercase text-xs hover:text-indigo-dark mt-3 ml-0">
                             {{package.author.name}}
                         </a>
 
-                        <a href="#" v-if="!installed" @click.prevent="install" class="btn btn-default btn-small btn-primary">Install Package</a>
+                        <button v-if="!installed"
+                            :disabled="disabled"
+                            :class="{'opacity-50 cursor-not-allowed': disabled}"
+                            @click.prevent="requestInstallation" class="btn btn-default h-btn-sm btn-primary leading-loose">
+                            <span v-if="installing"><loader width="30" height="30"></loader></span>
+                            <span v-else>Install</span>
+                        </button>
                 </div>
             </div>
         </div>
@@ -41,78 +47,95 @@
 </template>
 
 <script>
+    import notify from '../notify';
     export default {
-        props: ['package', 'installedPackages'],
+        props: ['package', 'installedPackages', 'key'],
+
+        created(){
+
+            Nova.$on('installation-requested', payload => this.installIfNeeded(payload))
+
+            Nova.$on('installation-started', payload => { this.notifyIfNeeded('installing', payload); this.disabled = true })
+
+            this.$on('installation-complete', payload => { this.notifyIfNeeded('installed', payload); this.configure()})
+
+            this.$on('configuration-started', payload => this.notifyIfNeeded('configuring', payload))
+
+            Nova.$on('configuration-complete', payload => { this.notifyIfNeeded('configured', payload); this.disabled = false })
+        },
 
         data() {
             return {
-                installed: this.isInstalled()
+                installed: this.isInstalled(),
+                installing: false,
+                disabled: false,
             }
         },
 
         methods: {
 
+            concernsPackage(packageKey){
+                return packageKey == this.$vnode.key;
+            },
+
+            notifyIfNeeded(type, payload){
+                if(this.concernsPackage(payload.packageKey)){
+                    notify[type](this.package.composer_name, this.$toasted)
+                }
+            },
+
+            clearNotificationsAfter(after){
+                var _this = this
+                setTimeout(function(){ _this.$toasted.clear(); }, after)
+            },
+
             isInstalled() {
 
-                var isPackageInstalled = this.installedPackages.map(function(i) {
-                  return i.name;
-                }).includes(this.package.composer_name);
+                return this.installedPackages.map(function(i) { return i.name; }).includes(this.package.composer_name);
 
-                return isPackageInstalled;
+            },
+
+            requestInstallation(){
+                Nova.$emit('installation-requested', {packageKey: this.$vnode.key});
+            },
+
+            installIfNeeded(payload){
+                if(this.concernsPackage(payload.packageKey)){
+                    this.install()
+                }
             },
 
             install(){
-                this.$toasted.show('Installing \'' + this.package.composer_name + '\'...', { type: 'info', duration: 100000 });
 
-                var request = new XMLHttpRequest();
-                request.open('POST', '/nova-vendor/sidis405/nova-installed-packages', true);
-                request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-                request.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
+                this.installing = true
 
-                request.onprogress = function(e) {
-                    var response = e.currentTarget.response;
-                    var lastResponseLength = null
-                    var output = typeof lastResponseLength === typeof undefined
-                        ? response
-                        : response.substring(lastResponseLength);
+                Nova.$emit('installation-started', {packageKey: this.$vnode.key});
 
-                    lastResponseLength = response.length;
-                    console.log(output);
-                };
+                axios.post('/nova-vendor/sidis405/nova-installed-packages', {package: this.package.composer_name})
+                .then((response) => {
+                        this.$emit('installation-complete', {packageKey: this.$vnode.key});
+                })
+            },
 
-                let vm = this
+            configure(){
 
-                request.onreadystatechange = function() {
-                    if (request.readyState == 4) {
-                        vm.installed = true
-                        // setTimeout(function(){
-                            vm.$toasted.clear();
-                            vm.$toasted.show('\'' + vm.package.composer_name + '\' was installed successfully', { type: 'success' });
-                            vm.$toasted.show('Configuring \'' + vm.package.composer_name + '\'...', { type: 'info', duration: 100000 });
-                        // }, 2000)
-                        axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', {package: vm.package.composer_name}).then((response) => {
-                                vm.$toasted.show('\'' + vm.package.composer_name + '\' was configured successfully', { type: 'success' });
-                            setTimeout(function(){
-                                vm.$toasted.clear();
-                                // location.reload();
-                                // window.location.href('/nova/nova-installed-packages');
-                            }, 2000)
-                        })
-                        console.log('Complete');
-                    }
-                };
+                this.$emit('configuration-started', {packageKey: this.$vnode.key});
 
-                request.send('package=' + vm.package.composer_name);
+                axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', {package: this.package.composer_name})
+                .then((response) => {
+
+                    Nova.$emit('configuration-complete', {packageKey: this.$vnode.key});
+
+                    this.installing = true;
+                    this.installed = true;
+
+                    this.clearNotificationsAfter(2000)
+                })
             }
         },
 
         computed: {
-            tags() {
-                return this.package.tags.map(function(value) {
-                  return '#' + value.name;
-                }).join(" ");
-            }
-
+            tags() { return this.package.tags.map(function(value) { return '#' + value.name; }).join(" "); }
         }
     }
 </script>

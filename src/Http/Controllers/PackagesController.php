@@ -4,8 +4,8 @@ namespace Strandafili\NovaInstalledPackages\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Strandafili\NovaInstalledPackages\Jobs\InstallPackage;
 use Strandafili\NovaInstalledPackages\Utils\NovaPackagesFinder;
-use Strandafili\NovaInstalledPackages\Utils\NovaPackagesInstaller;
 
 class PackagesController extends Controller
 {
@@ -14,8 +14,8 @@ class PackagesController extends Controller
         return $novaPackagesFinder->all();
     }
 
-    public function store(Request $request, NovaPackagesInstaller $installer)
+    public function store(Request $request)
     {
-        return $installer->install(request('package'));
+        return json_encode(dispatch(new InstallPackage(request('package'))));
     }
 }
