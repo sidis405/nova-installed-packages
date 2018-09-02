@@ -3,6 +3,7 @@
 namespace Strandafili\NovaInstalledPackages\Utils;
 
 use Composed;
+use Laravel\Nova\Nova;
 use HaydenPierce\ClassFinder\ClassFinder;
 use HaydenPierce\ClassFinder\ClassFinderException;
 
@@ -45,11 +46,11 @@ class NovaPackagesConfigurator
     protected function makeConfiguration()
     {
         foreach ($this->configurableClasses->toArray() as $type => $className) {
-            $this->configuration[$this->allowedClassTypes[$type]][] = $this->makeConfigurationItem($className);
+            $this->configuration[$this->allowedClassTypes[$type]][] = $this->makeConfigurationItem($className, $this->allowedClassTypes[$type]);
         }
     }
 
-    protected function makeConfigurationItem($className)
+    protected function makeConfigurationItem($className, $type)
     {
         $dependencies = $this->getConfigurableClassDependencies($className);
         $injectableParams = collect($dependencies)->collapse()->map(function ($val, $key) {
@@ -61,8 +62,17 @@ class NovaPackagesConfigurator
         return [
                 'className' => $className,
                 'injectableString' => $injectableString,
-                'dependencies' => $dependencies
+                'dependencies' => $dependencies,
+                'navigation' => ($type == 'tools') ? app()->make($className)->renderNavigation()->render(): '',
+                'scripts' => $this->renderScripts($className),
             ];
+    }
+
+    protected function renderScripts($className)
+    {
+        app()->make($className)->boot();
+
+        return collect(Nova::allScripts())->keys()->last();
     }
 
     protected function getConfigurableClassDependencies($configurableClass)

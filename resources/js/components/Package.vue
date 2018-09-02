@@ -124,6 +124,11 @@
                 axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', {package: this.package.composer_name})
                 .then((response) => {
 
+
+                    this.insertPackageScripts(response.data)
+
+                    this.insertNavigationItem(response.data)
+
                     Nova.$emit('configuration-complete', {packageKey: this.$vnode.key});
 
                     this.installing = true;
@@ -131,8 +136,27 @@
 
                     this.clearNotificationsAfter(2000)
                 })
-            }
+            },
+
+            insertPackageScripts(payload){
+                var head = document.getElementsByTagName('body')[0];
+                var script = document.createElement('script');
+                script.src = '/nova-api/scripts/' + payload['tools'][0]['scripts'];
+                head.appendChild(script);
+            },
+
+            insertNavigationItem(payload){
+                document.querySelector('#nova > div > div').insertAdjacentHTML('beforeend', this.decodeHTML(payload['tools'][0]['navigation']))
+            },
+
+            decodeHTML(html) {
+                var txt = document.createElement('textarea');
+                txt.innerHTML = html;
+                return txt.value;
+            },
         },
+
+
 
         computed: {
             tags() { return this.package.tags.map(function(value) { return '#' + value.name; }).join(" "); }

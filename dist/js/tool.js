@@ -1264,7 +1264,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
     methods: {
         getKeyName: function getKeyName(index, name) {
-            return this.listingType + "-" + name + '-' + index;
+            return [this.listingType, name, index].join('-');
         }
     }
 });
@@ -1455,6 +1455,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
             axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', { package: this.package.composer_name }).then(function (response) {
 
+                _this4.insertPackageScripts(response.data);
+
+                _this4.insertNavigationItem(response.data);
+
                 Nova.$emit('configuration-complete', { packageKey: _this4.$vnode.key });
 
                 _this4.installing = true;
@@ -1462,6 +1466,20 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
                 _this4.clearNotificationsAfter(2000);
             });
+        },
+        insertPackageScripts: function insertPackageScripts(payload) {
+            var head = document.getElementsByTagName('body')[0];
+            var script = document.createElement('script');
+            script.src = '/nova-api/scripts/' + payload['tools'][0]['scripts'];
+            head.appendChild(script);
+        },
+        insertNavigationItem: function insertNavigationItem(payload) {
+            document.querySelector('#nova > div > div').insertAdjacentHTML('beforeend', this.decodeHTML(payload['tools'][0]['navigation']));
+        },
+        decodeHTML: function decodeHTML(html) {
+            var txt = document.createElement('textarea');
+            txt.innerHTML = html;
+            return txt.value;
         }
     },
 

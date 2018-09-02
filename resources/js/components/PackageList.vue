@@ -18,7 +18,7 @@
 
         methods: {
             getKeyName(index, name){
-                return this.listingType + "-" + name + '-' + index
+                return [this.listingType, name, index].join('-')
             }
         }
     }
