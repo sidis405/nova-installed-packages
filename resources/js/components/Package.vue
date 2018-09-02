@@ -125,9 +125,7 @@
                 .then((response) => {
 
 
-                    this.insertPackageScripts(response.data)
-
-                    this.insertNavigationItem(response.data)
+                    this.mountPackageNavigationFrom(response.data)
 
                     Nova.$emit('configuration-complete', {packageKey: this.$vnode.key});
 
@@ -138,6 +136,12 @@
                 })
             },
 
+            mountPackageNavigationFrom(payload){
+                this.insertPackageScripts(payload)
+
+                this.insertNavigationItem(payload)
+            },
+
             insertPackageScripts(payload){
                 var head = document.getElementsByTagName('body')[0];
                 var script = document.createElement('script');
@@ -146,7 +150,8 @@
             },
 
             insertNavigationItem(payload){
-                document.querySelector('#nova > div > div').insertAdjacentHTML('beforeend', this.decodeHTML(payload['tools'][0]['navigation']))
+                document.querySelector('#nova > div > div')
+                .insertAdjacentHTML('beforeend', this.decodeHTML(payload['tools'][0]['navigation']))
             },
 
             decodeHTML(html) {
