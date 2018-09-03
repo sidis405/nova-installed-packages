@@ -62,6 +62,8 @@
             this.$on('configuration-started', payload => this.notifyIfNeeded('configuring', payload))
 
             Nova.$on('configuration-complete', payload => { this.notifyIfNeeded('configured', payload); this.disabled = false })
+
+            // this.startPolling()
         },
 
         data() {
@@ -69,6 +71,7 @@
                 installed: this.isInstalled(),
                 installing: false,
                 disabled: false,
+                composer: []
             }
         },
 
@@ -105,6 +108,16 @@
                 }
             },
 
+            startPolling() {
+                const poller = window.setInterval(() => {
+                    this.status();
+                }, 1000);
+
+                this.$once('hook:beforeDestroy', () => {
+                    window.clearInterval(poller);
+                });
+            },
+
             install(){
 
                 this.installing = true
@@ -114,6 +127,17 @@
                 axios.post('/nova-vendor/sidis405/nova-installed-packages', {package: this.package.composer_name})
                 .then((response) => {
                         this.$emit('installation-complete', {packageKey: this.$vnode.key});
+                })
+            },
+
+            status(){
+                axios.get('/nova-vendor/sidis405/nova-installed-packages/composer')
+                .then((response) => {
+
+                    this.composer = response.data
+
+                    console.log(this.composer)
+
                 })
             },
 
@@ -140,12 +164,17 @@
                 this.insertPackageScripts(payload)
 
                 this.insertNavigationItem(payload)
+
             },
 
             insertPackageScripts(payload){
                 if(payload['tools'][0]['scripts'].length){
                     var head = document.getElementsByTagName('body')[0];
                     var script = document.createElement('script');
+                    script.type = 'text/javascript';
+                    script.onload = function() {
+                        window.Nova.boot();
+                    }
                     script.src = '/nova-api/scripts/' + payload['tools'][0]['scripts'];
                     head.appendChild(script);
                 }

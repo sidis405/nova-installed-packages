@@ -1398,12 +1398,15 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         Nova.$on('configuration-complete', function (payload) {
             _this2.notifyIfNeeded('configured', payload);_this2.disabled = false;
         });
+
+        // this.startPolling()
     },
     data: function data() {
         return {
             installed: this.isInstalled(),
             installing: false,
-            disabled: false
+            disabled: false,
+            composer: []
         };
     },
 
@@ -1437,32 +1440,53 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 this.install();
             }
         },
-        install: function install() {
+        startPolling: function startPolling() {
             var _this3 = this;
+
+            var poller = window.setInterval(function () {
+                _this3.status();
+            }, 1000);
+
+            this.$once('hook:beforeDestroy', function () {
+                window.clearInterval(poller);
+            });
+        },
+        install: function install() {
+            var _this4 = this;
 
             this.installing = true;
 
             Nova.$emit('installation-started', { packageKey: this.$vnode.key });
 
             axios.post('/nova-vendor/sidis405/nova-installed-packages', { package: this.package.composer_name }).then(function (response) {
-                _this3.$emit('installation-complete', { packageKey: _this3.$vnode.key });
+                _this4.$emit('installation-complete', { packageKey: _this4.$vnode.key });
+            });
+        },
+        status: function status() {
+            var _this5 = this;
+
+            axios.get('/nova-vendor/sidis405/nova-installed-packages/composer').then(function (response) {
+
+                _this5.composer = response.data;
+
+                console.log(_this5.composer);
             });
         },
         configure: function configure() {
-            var _this4 = this;
+            var _this6 = this;
 
             this.$emit('configuration-started', { packageKey: this.$vnode.key });
 
             axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', { package: this.package.composer_name }).then(function (response) {
 
-                _this4.mountPackageNavigationFrom(response.data);
+                _this6.mountPackageNavigationFrom(response.data);
 
-                Nova.$emit('configuration-complete', { packageKey: _this4.$vnode.key });
+                Nova.$emit('configuration-complete', { packageKey: _this6.$vnode.key });
 
-                _this4.installing = true;
-                _this4.installed = true;
+                _this6.installing = true;
+                _this6.installed = true;
 
-                _this4.clearNotificationsAfter(2000);
+                _this6.clearNotificationsAfter(2000);
             });
         },
         mountPackageNavigationFrom: function mountPackageNavigationFrom(payload) {
@@ -1474,6 +1498,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             if (payload['tools'][0]['scripts'].length) {
                 var head = document.getElementsByTagName('body')[0];
                 var script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.onload = function () {
+                    window.Nova.boot();
+                };
                 script.src = '/nova-api/scripts/' + payload['tools'][0]['scripts'];
                 head.appendChild(script);
             }

@@ -18,6 +18,8 @@ Route::get('/', \Strandafili\NovaInstalledPackages\Http\Controllers\PackagesCont
 Route::post('/', \Strandafili\NovaInstalledPackages\Http\Controllers\PackagesController::class . '@store');
 Route::post('/configure', \Strandafili\NovaInstalledPackages\Http\Controllers\ConfigurationsController::class . '@store');
 
+Route::get('/composer', \Strandafili\NovaInstalledPackages\Http\Controllers\ComposerController::class . '@show');
+
 
 Route::get('/ping', function () {
     $response = new Symfony\Component\HttpFoundation\StreamedResponse();
