@@ -16,6 +16,6 @@ class PackagesController extends Controller
 
     public function store(Request $request)
     {
-        return json_encode(dispatch(new InstallPackage(request('package'))));
+        return json_encode(dispatch(new InstallPackage(request('package'), request('packageKey'))));
     }
 }

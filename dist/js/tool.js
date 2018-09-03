@@ -1061,7 +1061,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Scoped Styles */\n", ""]);
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Scoped Styles */\n", ""]);
 
 // exports
 
@@ -1148,6 +1148,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 _this.startPolling();
             }, 200);
         });
+
+        setTimeout(function () {
+            _this.initialStatusCheck();
+        }, 1500);
     },
     data: function data() {
         return {
@@ -1227,6 +1231,22 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
                     _this7.installingPackage = '';
                     _this7.stopPolling();
+                }
+            });
+        },
+        initialStatusCheck: function initialStatusCheck() {
+            var _this8 = this;
+
+            axios.get('/nova-vendor/sidis405/nova-installed-packages/composer').then(function (response) {
+
+                _this8.composer = response.data;
+
+                if (_this8.composer['is_running']) {
+
+                    Nova.$emit('installation-started', { packageKey: _this8.composer['packageKey'] });
+                } else if (!_this8.composer['is_running'] && _this8.composer['needs_configuration']) {
+
+                    Nova.$emit('configuration-requested', { packageKey: _this8.composer['packageKey'] });
                 }
             });
         }
@@ -1428,7 +1448,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         });
 
         Nova.$on('installation-started', function (payload) {
-            _this2.notifyIfNeeded('installing', payload);_this2.disabled = true;
+            _this2.notifyIfNeeded('installing', payload);
+            _this2.markAsInstallingInstallIfNeeded(payload);
+            _this2.disabled = true;
         });
 
         Nova.$on('installation-complete', function (payload) {
@@ -1487,13 +1509,16 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 this.install();
             }
         },
+        markAsInstallingInstallIfNeeded: function markAsInstallingInstallIfNeeded(payload) {
+            if (this.concernsPackage(payload.packageKey)) {
+                this.installing = true;
+            }
+        },
         install: function install() {
-
-            this.installing = true;
 
             Nova.$emit('installation-started', { packageKey: this.$vnode.key });
 
-            axios.post('/nova-vendor/sidis405/nova-installed-packages', { package: this.package.composer_name });
+            axios.post('/nova-vendor/sidis405/nova-installed-packages', { package: this.package.composer_name, packageKey: this.$vnode.key });
         },
         configureIfNeeded: function configureIfNeeded(payload) {
             if (this.concernsPackage(payload.packageKey)) {
@@ -1505,13 +1530,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
             Nova.$emit('configuration-started', { packageKey: this.$vnode.key });
 
-            axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', { package: this.package.composer_name }).then(function (response) {
+            axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', { package: this.package.composer_name, packageKey: this.$vnode.key }).then(function (response) {
 
                 _this3.mountPackageNavigationFrom(response.data);
 
                 Nova.$emit('configuration-complete', { packageKey: _this3.$vnode.key });
 
-                _this3.installing = true;
                 _this3.installed = true;
 
                 _this3.clearNotificationsAfter(2000);

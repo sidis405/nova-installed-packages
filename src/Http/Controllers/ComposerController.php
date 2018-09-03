@@ -11,6 +11,7 @@ class ComposerController extends Controller
         return [
             'is_running' => cache('composer.is_running', false),
             'package' => cache('composer.package', null),
+            'packageKey' => cache('composer.packageKey', null),
             'needs_configuration' => cache('composer.needs_configuration', false),
         ];
     }
@@ -19,6 +20,7 @@ class ComposerController extends Controller
     {
         cache()->put('composer.is_running', false, 10);
         cache()->put('composer.package', null, 10);
+        cache()->put('composer.packageKey', null, 10);
         cache()->put('composer.needs_configuration', false, 10);
     }
 }

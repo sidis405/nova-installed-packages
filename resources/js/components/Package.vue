@@ -55,7 +55,11 @@
 
             Nova.$on('installation-requested', payload => this.installIfNeeded(payload))
 
-            Nova.$on('installation-started', payload => { this.notifyIfNeeded('installing', payload); this.disabled = true })
+            Nova.$on('installation-started', payload => {
+                this.notifyIfNeeded('installing', payload);
+                this.markAsInstallingInstallIfNeeded(payload);
+                this.disabled = true
+            })
 
             Nova.$on('installation-complete', payload => this.notifyIfNeeded('installed', payload))
 
@@ -110,13 +114,17 @@
                 }
             },
 
-            install(){
+            markAsInstallingInstallIfNeeded(payload){
+                if(this.concernsPackage(payload.packageKey)){
+                    this.installing = true
+                }
+            },
 
-                this.installing = true
+            install(){
 
                 Nova.$emit('installation-started', {packageKey: this.$vnode.key});
 
-                axios.post('/nova-vendor/sidis405/nova-installed-packages', {package: this.package.composer_name})
+                axios.post('/nova-vendor/sidis405/nova-installed-packages', {package: this.package.composer_name, packageKey: this.$vnode.key})
             },
 
             configureIfNeeded(payload){
@@ -129,7 +137,7 @@
 
                 Nova.$emit('configuration-started', {packageKey: this.$vnode.key});
 
-                axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', {package: this.package.composer_name})
+                axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', {package: this.package.composer_name, packageKey: this.$vnode.key})
                 .then((response) => {
 
 
@@ -137,7 +145,6 @@
 
                     Nova.$emit('configuration-complete', {packageKey: this.$vnode.key});
 
-                    this.installing = true;
                     this.installed = true;
 
                     this.clearNotificationsAfter(2000)

@@ -72,6 +72,10 @@
                     _this.startPolling()
                 }, 200)
             })
+
+            setTimeout(function(){
+                _this.initialStatusCheck()
+            }, 1500)
         },
 
         data() {
@@ -145,6 +149,24 @@
 
                         this.installingPackage = '';
                         this.stopPolling()
+                    }
+                })
+            },
+
+            initialStatusCheck(){
+                axios.get('/nova-vendor/sidis405/nova-installed-packages/composer')
+                .then((response) => {
+
+                    this.composer = response.data
+
+                    if(this.composer['is_running']){
+
+                        Nova.$emit('installation-started', {packageKey: this.composer['packageKey']});
+
+                    }else if(!this.composer['is_running'] && this.composer['needs_configuration'] ){
+
+                        Nova.$emit('configuration-requested', {packageKey: this.composer['packageKey']});
+
                     }
                 })
             },

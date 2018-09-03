@@ -14,7 +14,7 @@ use Strandafili\NovaInstalledPackages\Utils\NovaPackagesConfigurator;
 class InstallPackage implements ShouldQueue
 {
     protected $package;
-    protected $installer;
+    protected $packageKey;
 
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -23,9 +23,10 @@ class InstallPackage implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($package)
+    public function __construct($package, $packageKey)
     {
         $this->package = $package;
+        $this->packageKey = $packageKey;
     }
 
     /**
@@ -37,6 +38,7 @@ class InstallPackage implements ShouldQueue
     {
         cache()->put('composer.is_running', true, 10);
         cache()->put('composer.package', $this->package, 10);
+        cache()->put('composer.packageKey', $this->packageKey, 10);
         cache()->put('composer.needs_configuration', false, 10);
 
         $installerOutput = $installer->install($this->package);
