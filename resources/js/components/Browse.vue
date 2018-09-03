@@ -63,6 +63,15 @@
             this.getPopularPackages()
             this.getRecentPackages()
             this.getInstalledPackages()
+
+            var _this = this
+
+            Nova.$on('installation-started', payload => {
+                _this.installingPackage = payload.packageKey;
+                setTimeout(function(){
+                    _this.startPolling()
+                }, 200)
+            })
         },
 
         data() {
@@ -71,7 +80,10 @@
                 recentPackages: '',
                 foundPackages: '',
                 installedPackages: '',
+                installingPackage: '',
                 term: '',
+                composer: [],
+                poller: '',
             }
         },
 
@@ -103,7 +115,39 @@
                 }else{
                     this.foundPackages = [];
                 }
-            }
+            },
+
+            startPolling() {
+                this.poller = window.setInterval(() => {
+                    this.status();
+                }, 1000);
+
+                this.$once('hook:beforeDestroy', () => {
+                    this.stopPolling()
+                });
+            },
+
+            stopPolling(){
+                window.clearInterval(this.poller);
+            },
+
+            status(){
+                axios.get('/nova-vendor/sidis405/nova-installed-packages/composer')
+                .then((response) => {
+
+                    this.composer = response.data
+
+                    if(this.composer['needs_configuration'] && this.installingPackage.length){
+
+                        Nova.$emit('installation-complete', {packageKey: this.installingPackage});
+
+                        Nova.$emit('configuration-requested', {packageKey: this.installingPackage});
+
+                        this.installingPackage = '';
+                        this.stopPolling()
+                    }
+                })
+            },
         }
     }
 </script>

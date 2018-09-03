@@ -19,6 +19,7 @@ Route::post('/', \Strandafili\NovaInstalledPackages\Http\Controllers\PackagesCon
 Route::post('/configure', \Strandafili\NovaInstalledPackages\Http\Controllers\ConfigurationsController::class . '@store');
 
 Route::get('/composer', \Strandafili\NovaInstalledPackages\Http\Controllers\ComposerController::class . '@show');
+Route::get('/composer-reset', \Strandafili\NovaInstalledPackages\Http\Controllers\ComposerController::class . '@reset');
 
 
 Route::get('/ping', function () {

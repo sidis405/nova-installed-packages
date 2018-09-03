@@ -57,9 +57,12 @@
 
             Nova.$on('installation-started', payload => { this.notifyIfNeeded('installing', payload); this.disabled = true })
 
-            this.$on('installation-complete', payload => { this.notifyIfNeeded('installed', payload); this.configure()})
+            Nova.$on('installation-complete', payload => this.notifyIfNeeded('installed', payload))
 
-            this.$on('configuration-started', payload => this.notifyIfNeeded('configuring', payload))
+
+            Nova.$on('configuration-requested', payload => this.configureIfNeeded(payload))
+
+            Nova.$on('configuration-started', payload => this.notifyIfNeeded('configuring', payload))
 
             Nova.$on('configuration-complete', payload => { this.notifyIfNeeded('configured', payload); this.disabled = false })
 
@@ -70,8 +73,7 @@
             return {
                 installed: this.isInstalled(),
                 installing: false,
-                disabled: false,
-                composer: []
+                disabled: false
             }
         },
 
@@ -108,16 +110,6 @@
                 }
             },
 
-            startPolling() {
-                const poller = window.setInterval(() => {
-                    this.status();
-                }, 1000);
-
-                this.$once('hook:beforeDestroy', () => {
-                    window.clearInterval(poller);
-                });
-            },
-
             install(){
 
                 this.installing = true
@@ -125,25 +117,17 @@
                 Nova.$emit('installation-started', {packageKey: this.$vnode.key});
 
                 axios.post('/nova-vendor/sidis405/nova-installed-packages', {package: this.package.composer_name})
-                .then((response) => {
-                        this.$emit('installation-complete', {packageKey: this.$vnode.key});
-                })
             },
 
-            status(){
-                axios.get('/nova-vendor/sidis405/nova-installed-packages/composer')
-                .then((response) => {
-
-                    this.composer = response.data
-
-                    console.log(this.composer)
-
-                })
+            configureIfNeeded(payload){
+                if(this.concernsPackage(payload.packageKey)){
+                    this.configure()
+                }
             },
 
             configure(){
 
-                this.$emit('configuration-started', {packageKey: this.$vnode.key});
+                Nova.$emit('configuration-started', {packageKey: this.$vnode.key});
 
                 axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', {package: this.package.composer_name})
                 .then((response) => {

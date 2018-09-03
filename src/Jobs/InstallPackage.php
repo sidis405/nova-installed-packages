@@ -35,6 +35,15 @@ class InstallPackage implements ShouldQueue
      */
     public function handle(NovaPackagesInstaller $installer, NovaPackagesConfigurator $configurator, NovaPackagesInjector $injector)
     {
-        return $installer->install($this->package);
+        cache()->put('composer.is_running', true, 10);
+        cache()->put('composer.package', $this->package, 10);
+        cache()->put('composer.needs_configuration', false, 10);
+
+        $installerOutput = $installer->install($this->package);
+
+        cache()->put('composer.is_running', false, 10);
+        cache()->put('composer.needs_configuration', true, 10);
+
+        return $installerOutput;
     }
 }

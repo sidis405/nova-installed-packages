@@ -16,6 +16,9 @@ class ConfigurationsController extends Controller
 
         $injectorOutput = $injector->inject($configuration);
 
+        cache()->put('composer.package', null, 10);
+        cache()->put('composer.needs_configuration', false, 10);
+
         return $injectorOutput;
 
         // $result = dispatch(new ConfigurePackage(request('package')));

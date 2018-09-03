@@ -1061,7 +1061,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Scoped Styles */\n", ""]);
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Scoped Styles */\n", ""]);
 
 // exports
 
@@ -1139,6 +1139,15 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         this.getPopularPackages();
         this.getRecentPackages();
         this.getInstalledPackages();
+
+        var _this = this;
+
+        Nova.$on('installation-started', function (payload) {
+            _this.installingPackage = payload.packageKey;
+            setTimeout(function () {
+                _this.startPolling();
+            }, 200);
+        });
     },
     data: function data() {
         return {
@@ -1146,45 +1155,80 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             recentPackages: '',
             foundPackages: '',
             installedPackages: '',
-            term: ''
+            installingPackage: '',
+            term: '',
+            composer: [],
+            poller: ''
         };
     },
 
 
     methods: {
         getInstalledPackages: function getInstalledPackages() {
-            var _this = this;
+            var _this2 = this;
 
             axios.get('/nova-vendor/sidis405/nova-installed-packages').then(function (response) {
-                _this.installedPackages = Array.from(Object.keys(response.data), function (k) {
+                _this2.installedPackages = Array.from(Object.keys(response.data), function (k) {
                     return response.data[k];
                 });
             });
         },
         getPopularPackages: function getPopularPackages() {
-            var _this2 = this;
+            var _this3 = this;
 
             axios.get('https://novapackages.com/api/popular').then(function (response) {
-                _this2.popularPackages = response.data.data;
+                _this3.popularPackages = response.data.data;
             });
         },
         getRecentPackages: function getRecentPackages() {
-            var _this3 = this;
+            var _this4 = this;
 
             axios.get('https://novapackages.com/api/recent').then(function (response) {
-                _this3.recentPackages = response.data.data;
+                _this4.recentPackages = response.data.data;
             });
         },
         searchPackages: function searchPackages() {
-            var _this4 = this;
+            var _this5 = this;
 
             if (this.term.length > 2) {
                 axios.get('https://novapackages.com/api/search?q=' + this.term).then(function (response) {
-                    _this4.foundPackages = response.data.data;
+                    _this5.foundPackages = response.data.data;
                 });
             } else {
                 this.foundPackages = [];
             }
+        },
+        startPolling: function startPolling() {
+            var _this6 = this;
+
+            this.poller = window.setInterval(function () {
+                _this6.status();
+            }, 1000);
+
+            this.$once('hook:beforeDestroy', function () {
+                _this6.stopPolling();
+            });
+        },
+        stopPolling: function stopPolling() {
+            window.clearInterval(this.poller);
+        },
+        status: function status() {
+            var _this7 = this;
+
+            axios.get('/nova-vendor/sidis405/nova-installed-packages/composer').then(function (response) {
+
+                _this7.composer = response.data;
+
+                if (_this7.composer['needs_configuration'] && _this7.installingPackage.length) {
+
+                    Nova.$emit('installation-complete', { packageKey: _this7.installingPackage });
+
+                    Nova.$emit('configuration-requested', { packageKey: _this7.installingPackage });
+
+                    _this7.installingPackage = '';
+                    _this7.stopPolling();
+                }
+            });
         }
     }
 });
@@ -1387,11 +1431,15 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             _this2.notifyIfNeeded('installing', payload);_this2.disabled = true;
         });
 
-        this.$on('installation-complete', function (payload) {
-            _this2.notifyIfNeeded('installed', payload);_this2.configure();
+        Nova.$on('installation-complete', function (payload) {
+            return _this2.notifyIfNeeded('installed', payload);
         });
 
-        this.$on('configuration-started', function (payload) {
+        Nova.$on('configuration-requested', function (payload) {
+            return _this2.configureIfNeeded(payload);
+        });
+
+        Nova.$on('configuration-started', function (payload) {
             return _this2.notifyIfNeeded('configuring', payload);
         });
 
@@ -1405,8 +1453,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         return {
             installed: this.isInstalled(),
             installing: false,
-            disabled: false,
-            composer: []
+            disabled: false
         };
     },
 
@@ -1440,53 +1487,34 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 this.install();
             }
         },
-        startPolling: function startPolling() {
-            var _this3 = this;
-
-            var poller = window.setInterval(function () {
-                _this3.status();
-            }, 1000);
-
-            this.$once('hook:beforeDestroy', function () {
-                window.clearInterval(poller);
-            });
-        },
         install: function install() {
-            var _this4 = this;
 
             this.installing = true;
 
             Nova.$emit('installation-started', { packageKey: this.$vnode.key });
 
-            axios.post('/nova-vendor/sidis405/nova-installed-packages', { package: this.package.composer_name }).then(function (response) {
-                _this4.$emit('installation-complete', { packageKey: _this4.$vnode.key });
-            });
+            axios.post('/nova-vendor/sidis405/nova-installed-packages', { package: this.package.composer_name });
         },
-        status: function status() {
-            var _this5 = this;
-
-            axios.get('/nova-vendor/sidis405/nova-installed-packages/composer').then(function (response) {
-
-                _this5.composer = response.data;
-
-                console.log(_this5.composer);
-            });
+        configureIfNeeded: function configureIfNeeded(payload) {
+            if (this.concernsPackage(payload.packageKey)) {
+                this.configure();
+            }
         },
         configure: function configure() {
-            var _this6 = this;
+            var _this3 = this;
 
-            this.$emit('configuration-started', { packageKey: this.$vnode.key });
+            Nova.$emit('configuration-started', { packageKey: this.$vnode.key });
 
             axios.post('/nova-vendor/sidis405/nova-installed-packages/configure', { package: this.package.composer_name }).then(function (response) {
 
-                _this6.mountPackageNavigationFrom(response.data);
+                _this3.mountPackageNavigationFrom(response.data);
 
-                Nova.$emit('configuration-complete', { packageKey: _this6.$vnode.key });
+                Nova.$emit('configuration-complete', { packageKey: _this3.$vnode.key });
 
-                _this6.installing = true;
-                _this6.installed = true;
+                _this3.installing = true;
+                _this3.installed = true;
 
-                _this6.clearNotificationsAfter(2000);
+                _this3.clearNotificationsAfter(2000);
             });
         },
         mountPackageNavigationFrom: function mountPackageNavigationFrom(payload) {

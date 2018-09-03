@@ -9,9 +9,16 @@ class ComposerController extends Controller
     public function show()
     {
         return [
-            'is_running' => session('composer.is_running', false),
-            'package' => session('composer.package', null),
-            'needs_configuration' => session('composer.needs_configuration', false),
+            'is_running' => cache('composer.is_running', false),
+            'package' => cache('composer.package', null),
+            'needs_configuration' => cache('composer.needs_configuration', false),
         ];
+    }
+
+    public function reset()
+    {
+        cache()->put('composer.is_running', false, 10);
+        cache()->put('composer.package', null, 10);
+        cache()->put('composer.needs_configuration', false, 10);
     }
 }
