@@ -64,7 +64,7 @@ class NovaPackagesConfigurator
                 'injectableString' => $injectableString,
                 'dependencies' => $dependencies,
                 'navigation' => ($type == 'tools') ? app()->make($className)->renderNavigation()->render(): '',
-                'scripts' => $this->renderScripts($className),
+                'scripts' => ($type == 'tools') ? $this->renderScripts($className) : '',
             ];
     }
 

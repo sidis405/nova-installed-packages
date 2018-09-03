@@ -143,10 +143,12 @@
             },
 
             insertPackageScripts(payload){
-                var head = document.getElementsByTagName('body')[0];
-                var script = document.createElement('script');
-                script.src = '/nova-api/scripts/' + payload['tools'][0]['scripts'];
-                head.appendChild(script);
+                if(payload['tools'][0]['scripts'].length){
+                    var head = document.getElementsByTagName('body')[0];
+                    var script = document.createElement('script');
+                    script.src = '/nova-api/scripts/' + payload['tools'][0]['scripts'];
+                    head.appendChild(script);
+                }
             },
 
             insertNavigationItem(payload){
