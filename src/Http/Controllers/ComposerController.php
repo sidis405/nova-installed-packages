@@ -3,24 +3,24 @@
 namespace Strandafili\NovaInstalledPackages\Http\Controllers;
 
 use Illuminate\Routing\Controller;
+use Strandafili\NovaInstalledPackages\Utils\ComposerStatus;
 
 class ComposerController extends Controller
 {
+    protected $status;
+
+    public function __construct(ComposerStatus $status)
+    {
+        $this->status = $status;
+    }
+
     public function show()
     {
-        return [
-            'is_running' => cache('composer.is_running', false),
-            'package' => cache('composer.package', null),
-            'packageKey' => cache('composer.packageKey', null),
-            'needs_configuration' => cache('composer.needs_configuration', false),
-        ];
+        return $this->status->show();
     }
 
     public function reset()
     {
-        cache()->put('composer.is_running', false, 10);
-        cache()->put('composer.package', null, 10);
-        cache()->put('composer.packageKey', null, 10);
-        cache()->put('composer.needs_configuration', false, 10);
+        return $this->status->reset();
     }
 }
