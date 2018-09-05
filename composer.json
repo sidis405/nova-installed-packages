@@ -45,12 +45,6 @@
         "laravel": {
             "providers": [
                 "Strandafili\\NovaInstalledPackages\\ToolServiceProvider"
-            ],
-            "nova-providers": [
-                {
-                    "type": "tools",
-                    "provider": "\\Strandafili\\NovaInstalledPackages\\Tool"
-                }
             ]
         },
         "nova": {
