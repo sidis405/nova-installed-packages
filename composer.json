@@ -22,8 +22,10 @@
     ],
     "require": {
         "php": ">=7.1.0",
+        "haydenpierce/class-finder": "^0.0.2",
         "joshdifabio/composed": "^1.0",
-        "laravel/nova": "*"
+        "laravel/nova": "*",
+        "nikic/php-parser": "^4.0"
     },
     "require-dev": {
         "orchestra/testbench": "^3.6",
@@ -43,6 +45,14 @@
         "laravel": {
             "providers": [
                 "Strandafili\\NovaInstalledPackages\\ToolServiceProvider"
+            ]
+        },
+        "nova": {
+            "install": [
+                {
+                    "type": "tools",
+                    "provider": "new \\Strandafili\\NovaInstalledPackages\\Tool()"
+                }
             ]
         }
     },
